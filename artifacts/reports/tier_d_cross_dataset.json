@@ -1,0 +1,462 @@
+{
+  "tier": "D - cross-dataset",
+  "train_dataset": "CICIDS2017",
+  "eval_dataset": "CSE-CIC-IDS2018",
+  "script": "scripts/eval_cross_dataset.py",
+  "models_dir": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\artifacts\\models",
+  "model_metadata": {
+    "trained_at": "2026-09-04T18:11:27.418296+00:00",
+    "feature_columns": [
+      "Destination Port",
+      "Flow Duration",
+      "Total Fwd Packets",
+      "Total Backward Packets",
+      "Total Length of Fwd Packets",
+      "Total Length of Bwd Packets",
+      "Fwd Packet Length Max",
+      "Fwd Packet Length Min",
+      "Fwd Packet Length Mean",
+      "Fwd Packet Length Std",
+      "Bwd Packet Length Max",
+      "Bwd Packet Length Min",
+      "Bwd Packet Length Mean",
+      "Bwd Packet Length Std",
+      "Flow Bytes/s",
+      "Flow Packets/s",
+      "Flow IAT Mean",
+      "Flow IAT Std",
+      "Flow IAT Max",
+      "Flow IAT Min",
+      "Fwd IAT Total",
+      "Fwd IAT Mean",
+      "Fwd IAT Std",
+      "Fwd IAT Max",
+      "Fwd IAT Min",
+      "Bwd IAT Total",
+      "Bwd IAT Mean",
+      "Bwd IAT Std",
+      "Bwd IAT Max",
+      "Bwd IAT Min",
+      "Fwd PSH Flags",
+      "Fwd URG Flags",
+      "Fwd Header Length",
+      "Bwd Header Length",
+      "Fwd Packets/s",
+      "Bwd Packets/s",
+      "Packet Length Min",
+      "Packet Length Max",
+      "Packet Length Mean",
+      "Packet Length Std",
+      "Packet Length Variance",
+      "FIN Flag Count",
+      "SYN Flag Count",
+      "RST Flag Count",
+      "PSH Flag Count",
+      "ACK Flag Count",
+      "URG Flag Count",
+      "CWE Flag Count",
+      "ECE Flag Count",
+      "Down/Up Ratio",
+      "Average Packet Size",
+      "Fwd Segment Size Avg",
+      "Bwd Segment Size Avg",
+      "Fwd Header Length.1",
+      "Subflow Fwd Packets",
+      "Subflow Bwd Bytes",
+      "Subflow Bwd Packets",
+      "Subflow Fwd Bytes",
+      "Init_Win_bytes_forward",
+      "Init_Win_bytes_backward",
+      "act_data_pkt_fwd",
+      "min_seg_size_forward",
+      "Active Mean",
+      "Active Std",
+      "Active Max",
+      "Active Min",
+      "Idle Mean",
+      "Idle Std",
+      "Idle Max",
+      "Idle Min"
+    ],
+    "n_features": 70,
+    "rows": {
+      "train": 2093105,
+      "val": 261638,
+      "test": 261636
+    },
+    "sample": null,
+    "stage1": {
+      "best_iteration": 472,
+      "test": {
+        "auc": 1.0,
+        "f1": 0.9974,
+        "precision": 0.9951,
+        "recall": 0.9998,
+        "false_positives": 220,
+        "false_negatives": 8,
+        "threshold": 0.5
+      }
+    },
+    "stage2": {
+      "best_iteration": 277,
+      "classes": [
+        "Botnet",
+        "BruteForce",
+        "DDoS",
+        "DoS",
+        "Infiltration",
+        "PortScan",
+        "WebAttack"
+      ],
+      "test_macro_f1": 0.9986
+    },
+    "system": {
+      "test_macro_f1_8families": 0.9554
+    }
+  },
+  "stage2_classes": [
+    "Botnet",
+    "BruteForce",
+    "DDoS",
+    "DoS",
+    "Infiltration",
+    "PortScan",
+    "WebAttack"
+  ],
+  "auto_response_families": [
+    "BruteForce",
+    "DDoS",
+    "DoS",
+    "PortScan"
+  ],
+  "policy": {
+    "gate_threshold": 0.5,
+    "confidence_floor": 0.6,
+    "cascade": "gate -> multiclass argmax -> confidence floor -> UNKNOWN/human queue"
+  },
+  "inputs": {
+    "files": {
+      "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 591283,
+        "row_groups": 11,
+        "columns": 81,
+        "missing": []
+      }
+    },
+    "total_rows": 591283
+  },
+  "rows_evaluated": 300000,
+  "seconds": 6.3,
+  "nonfinite_cells": 0,
+  "results": {
+    "gate": {
+      "threshold": 0.5,
+      "auc": 0.856079,
+      "detection_recall": 0.0,
+      "detection_recall_ci95": [
+        0.0,
+        1.8e-05
+      ],
+      "false_positives": 10,
+      "benign_flows": 91865,
+      "false_positive_rate": 0.00010886,
+      "false_positive_rate_ci95": [
+        5.9e-05,
+        0.0002
+      ],
+      "specificity": 0.999891,
+      "specificity_ci95": [
+        0.9998,
+        0.999941
+      ],
+      "false_negatives": 208135,
+      "attack_flows": 208135
+    },
+    "operational_impact": {
+      "benign_rows_auto_responded": 9,
+      "benign_auto_response_rate": 9.797e-05,
+      "benign_rows_human_approval": 1,
+      "benign_rows_unknown_queue": 0,
+      "attack_rows_auto_responded": 0,
+      "attack_rows_human_approval": 0,
+      "attack_rows_unknown_queue": 0,
+      "attack_rows_missed_by_gate": 208135
+    },
+    "families": {
+      "BruteForce": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 9
+      },
+      "DoS": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 0
+      },
+      "DDoS": {
+        "status": "covered",
+        "support": 208135,
+        "low_support": false,
+        "precision": 0.0,
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          1.8e-05
+        ],
+        "f1": 0.0,
+        "predicted_as": 0,
+        "gate_recall": 0.0,
+        "stage2_recall_given_gate": 0.0,
+        "unknown_routed": 0,
+        "unknown_routed_pct": 0.0
+      },
+      "PortScan": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 0
+      },
+      "WebAttack": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 1
+      },
+      "Botnet": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 0
+      },
+      "Infiltration": {
+        "status": "not covered",
+        "support": 0,
+        "predicted": 0
+      }
+    },
+    "families_covered": [
+      "DDoS"
+    ],
+    "families_not_covered": [
+      "BruteForce",
+      "DoS",
+      "PortScan",
+      "WebAttack",
+      "Botnet",
+      "Infiltration"
+    ],
+    "macro_over_covered_attack_families": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "n_families": 1,
+      "n_families_total": 7
+    },
+    "predicted_labels": [
+      "BENIGN",
+      "BruteForce",
+      "DoS",
+      "DDoS",
+      "PortScan",
+      "WebAttack",
+      "Botnet",
+      "Infiltration",
+      "UNKNOWN"
+    ]
+  },
+  "routing_decisions": {
+    "log_only": 299990,
+    "auto_response": 9,
+    "human_approval": 1
+  },
+  "routing_decisions_by_truth": {
+    "log_only|attack": 208135,
+    "log_only|benign": 91855,
+    "auto_response|attack": 0,
+    "auto_response|benign": 9,
+    "human_approval|attack": 0,
+    "human_approval|benign": 1
+  },
+  "per_day": {
+    "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 300000,
+      "benign": 91865,
+      "benign_flagged": 10,
+      "attack": 208135,
+      "attack_missed": 208135
+    }
+  },
+  "confidence_histogram_attack_rows": {
+    "bin_edges": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1.0
+    ],
+    "counts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "confusion_matrix": {
+    "labels": [
+      "BENIGN",
+      "BruteForce",
+      "DoS",
+      "DDoS",
+      "PortScan",
+      "WebAttack",
+      "Botnet",
+      "Infiltration",
+      "UNKNOWN"
+    ],
+    "rows_true": [
+      [
+        91855,
+        9,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        208135,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "confusion_png": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\artifacts\\reports\\tier_d_confusion_2018.png",
+  "limitations": [
+    "5 of the 6 source CSVs contain exactly 1,048,575 rows (2**20-1 = Excel's row limit), so those days are capped subsets of the original capture.",
+    "The 2018 CSVs are grouped by victim machine/pcap, NOT ordered by time (verified: the middle row's timestamp precedes the first row's in all six files). The cap therefore drops whole machines rather than a slice of the day, and no temporal analysis is possible on this dataset.",
+    "PortScan, Botnet and Infiltration do not occur in the six downloaded files. They are reported as 'not covered' and excluded from macro-F1 - never scored as zero.",
+    "CSE-CIC-IDS2018 has no PortScan label at all: the nmap port scan is part of the Infiltration scenario, so PortScan coverage would require the 01-03/02-03 files.",
+    "WebAttack support is very small (n=314), so its recall carries a wide interval and is flagged LOW SUPPORT.",
+    "74,595 rows (0.57%) were dropped for Inf/NaN features, mirroring the 2017 cleaning rule; their per-family distribution was not recorded.",
+    "Deduplication is window-local (each chunk vs the previous one), so runs of identical flows longer than 2 x chunksize can survive. Per-family duplicate rates are reported by scripts/build_dataset2018.py.",
+    "No 2018 data was used for training, validation, threshold selection or feature choice - which is what makes this tier an honest generalisation estimate."
+  ],
+  "partial_run": true,
+  "note": "PARTIAL RUN (--file/--limit-rows): numbers describe a subset only and must not be quoted as tier-D results. Re-run without filters for the real numbers.",
+  "generated_at": "2026-09-05T19:40:20.303250+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

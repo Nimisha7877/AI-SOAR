@@ -1,0 +1,433 @@
+{
+  "generated_at": "2026-09-05T19:06:26+00:00",
+  "script": "scripts/build_dataset2018.py",
+  "dataset": "CSE-CIC-IDS2018",
+  "purpose": "tier-D cross-dataset evaluation set (no training)",
+  "external_dir": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external",
+  "output_dir": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed",
+  "chunksize": 100000,
+  "limit_rows": null,
+  "feature_space": {
+    "canonical": 78,
+    "model_features": 70,
+    "dtype": "float32",
+    "dropped_constant_features": 8
+  },
+  "cleaning_rules": [
+    "junk repeated-header rows dropped (Label == 'Label')",
+    "rows with any Inf/NaN across the 78 canonical features dropped",
+    "duplicates: mode=window (window = exact duplicates vs the previous chunk)",
+    "Timestamp/Protocol/IP/FlowID identity columns dropped (calendar + identity leakage)",
+    "unmapped 2018 labels raise instead of being silently discarded",
+    "features stored as float32, matching the 2017 pipeline's load_split() cast"
+  ],
+  "dedup_mode": "window",
+  "dedup_limitation": "Window dedup only compares each chunk with the previous one, so a run of identical flows longer than 2 x chunksize can leave duplicates in the output. This inflates per-flow counts proportionally; it cannot cause train/test leakage because the 2018 set is used for evaluation only.",
+  "totals": {
+    "files": 6,
+    "rows_read": 13191623,
+    "rows_out": 10749490,
+    "rows_dropped_nonfinite": 74595,
+    "duplicates_dropped": 2367537,
+    "junk_rows": 1,
+    "inf_cells": 102823,
+    "nan_cells": 46367,
+    "seconds": 323.3
+  },
+  "families": {
+    "BENIGN": 9648065,
+    "BruteForce": 94711,
+    "DoS": 200455,
+    "DDoS": 805945,
+    "PortScan": 0,
+    "WebAttack": 314,
+    "Botnet": 0,
+    "Infiltration": 0
+  },
+  "duplicates_by_family": {
+    "BENIGN": 1221356,
+    "BruteForce": 286843,
+    "DoS": 401347,
+    "DDoS": 457988,
+    "PortScan": 0,
+    "WebAttack": 3,
+    "Botnet": 0,
+    "Infiltration": 0
+  },
+  "families_not_covered": [
+    "PortScan",
+    "Botnet",
+    "Infiltration"
+  ],
+  "row_cap_suspect_files": [
+    "Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Friday-23-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv"
+  ],
+  "prior_audit": {
+    "found": true,
+    "family_counts_combined": {
+      "BENIGN": 10944010,
+      "DDoS": 1263933,
+      "DoS": 601802,
+      "BruteForce": 381560,
+      "WebAttack": 317
+    }
+  },
+  "files": [
+    {
+      "file": "Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Friday-16-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 73.8,
+      "seconds": 25.1,
+      "families": {
+        "DoS": 200455,
+        "BENIGN": 446765
+      },
+      "duplicates_by_family": {
+        "DoS": 401347,
+        "BENIGN": 7
+      },
+      "raw_labels": {
+        "DoS attacks-SlowHTTPTest": 139890,
+        "DoS attacks-Hulk": 461912,
+        "Benign": 446772,
+        "Label": 1
+      },
+      "rows_read": 1048575,
+      "rows_out": 647220,
+      "chunks": 11,
+      "junk_rows": 1,
+      "inf_cells": 0,
+      "nan_cells": 0,
+      "rows_dropped_nonfinite": 0,
+      "duplicates_dropped": 401354,
+      "probe": {
+        "rel": "cicids2018\\Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 333.7,
+        "header_fields": 80,
+        "first_ts": "16/02/2018 08:27:23",
+        "middle_ts": "16/02/2018 01:46:57",
+        "last_ts": "16/02/2018 10:36:33",
+        "last_fields": 80,
+        "ends_with_newline": true,
+        "last_row_tail": ",0,1,0,1,0,26883,0,0,40,0,0,0,0,0,0,0,0,DoS attacks-SlowHTTPTest"
+      },
+      "audit": {
+        "columns": 80,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "file": "Friday-23-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Friday-23-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 111.4,
+      "seconds": 30.3,
+      "families": {
+        "BENIGN": 943952,
+        "BruteForce": 340,
+        "WebAttack": 201
+      },
+      "duplicates_by_family": {
+        "BENIGN": 98349,
+        "BruteForce": 22,
+        "WebAttack": 3
+      },
+      "raw_labels": {
+        "Benign": 1048009,
+        "Brute Force -Web": 362,
+        "Brute Force -XSS": 151,
+        "SQL Injection": 53
+      },
+      "rows_read": 1048575,
+      "rows_out": 944493,
+      "chunks": 11,
+      "junk_rows": 0,
+      "inf_cells": 7662,
+      "nan_cells": 3754,
+      "rows_dropped_nonfinite": 5708,
+      "duplicates_dropped": 98374,
+      "probe": {
+        "rel": "cicids2018\\Friday-23-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 382.8,
+        "header_fields": 80,
+        "first_ts": "23/02/2018 08:18:29",
+        "middle_ts": "23/02/2018 11:05:44",
+        "last_ts": "23/02/2018 09:04:11",
+        "last_fields": 80,
+        "ends_with_newline": true,
+        "last_row_tail": ",67.6,0,0,0,0,0,0,6,455,5,338,8192,0,4,20,0,0,0,0,0,0,0,0,Benign"
+      },
+      "audit": {
+        "columns": 80,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "file": "Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Thuesday-20-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 794.9,
+      "seconds": 211.0,
+      "families": {
+        "DDoS": 575471,
+        "BENIGN": 6358168
+      },
+      "duplicates_by_family": {
+        "DDoS": 720,
+        "BENIGN": 954936
+      },
+      "raw_labels": {
+        "DDoS attacks-LOIC-HTTP": 576191,
+        "Benign": 7372557
+      },
+      "rows_read": 7948748,
+      "rows_out": 6933639,
+      "chunks": 80,
+      "junk_rows": 0,
+      "inf_cells": 82139,
+      "nan_cells": 36767,
+      "rows_dropped_nonfinite": 59453,
+      "duplicates_dropped": 955656,
+      "probe": {
+        "rel": "cicids2018\\Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 4054.9,
+        "header_fields": 84,
+        "first_ts": "20/02/2018 08:34:07",
+        "middle_ts": "20/02/2018 11:50:52",
+        "last_ts": "20/02/2018 04:07:01",
+        "last_fields": 84,
+        "ends_with_newline": true,
+        "last_row_tail": "0,0.0,0.0,0,0,0,0,0,0,2,0,2,0,8192,0,0,32,0,0,0,0,0,0,0,0,Benign"
+      },
+      "audit": {
+        "columns": 84,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Flow ID",
+          "Src IP",
+          "Src Port",
+          "Dst IP",
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "file": "Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Thursday-22-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 111.2,
+      "seconds": 20.8,
+      "families": {
+        "BENIGN": 942005,
+        "BruteForce": 228,
+        "WebAttack": 113
+      },
+      "duplicates_by_family": {
+        "BENIGN": 100598,
+        "BruteForce": 21
+      },
+      "raw_labels": {
+        "Benign": 1048213,
+        "Brute Force -Web": 249,
+        "Brute Force -XSS": 79,
+        "SQL Injection": 34
+      },
+      "rows_read": 1048575,
+      "rows_out": 942346,
+      "chunks": 11,
+      "junk_rows": 0,
+      "inf_cells": 7651,
+      "nan_cells": 3569,
+      "rows_dropped_nonfinite": 5610,
+      "duplicates_dropped": 100619,
+      "probe": {
+        "rel": "cicids2018\\Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 382.6,
+        "header_fields": 80,
+        "first_ts": "22/02/2018 08:26:03",
+        "middle_ts": "22/02/2018 03:48:35",
+        "last_ts": "22/02/2018 04:34:32",
+        "last_fields": 80,
+        "ends_with_newline": true,
+        "last_row_tail": "0,0,0,0,0,0,8,1144,7,1581,8192,62856,5,20,0,0,0,0,0,0,0,0,Benign"
+      },
+      "audit": {
+        "columns": 80,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "file": "Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Wednesday-14-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 79.4,
+      "seconds": 19.4,
+      "families": {
+        "BENIGN": 596366,
+        "BruteForce": 94143
+      },
+      "duplicates_by_family": {
+        "BruteForce": 286800,
+        "BENIGN": 67442
+      },
+      "raw_labels": {
+        "FTP-BruteForce": 193360,
+        "Benign": 667626,
+        "SSH-Bruteforce": 187589
+      },
+      "rows_read": 1048575,
+      "rows_out": 690509,
+      "chunks": 11,
+      "junk_rows": 0,
+      "inf_cells": 5371,
+      "nan_cells": 2277,
+      "rows_dropped_nonfinite": 3824,
+      "duplicates_dropped": 354242,
+      "probe": {
+        "rel": "cicids2018\\Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 358.2,
+        "header_fields": 80,
+        "first_ts": "14/02/2018 08:31:01",
+        "middle_ts": "14/02/2018 01:38:35",
+        "last_ts": "14/02/2018 10:53:28",
+        "last_fields": 80,
+        "ends_with_newline": true,
+        "last_row_tail": "110,3,20,291569,0,291569,291569,5515650,0,5515650,5515650,Benign"
+      },
+      "audit": {
+        "columns": 80,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "file": "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv",
+      "out": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\data\\external\\_processed\\Wednesday-21-02-2018_TrafficForML_CICFlowMeter.parquet",
+      "out_size_mb": 41.5,
+      "seconds": 16.5,
+      "families": {
+        "DDoS": 230474,
+        "BENIGN": 360809
+      },
+      "duplicates_by_family": {
+        "DDoS": 457268,
+        "BENIGN": 24
+      },
+      "raw_labels": {
+        "DDOS attack-HOIC": 686012,
+        "Benign": 360833,
+        "DDOS attack-LOIC-UDP": 1730
+      },
+      "rows_read": 1048575,
+      "rows_out": 591283,
+      "chunks": 11,
+      "junk_rows": 0,
+      "inf_cells": 0,
+      "nan_cells": 0,
+      "rows_dropped_nonfinite": 0,
+      "duplicates_dropped": 457292,
+      "probe": {
+        "rel": "cicids2018\\Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv",
+        "depth": 1,
+        "size_mb": 328.9,
+        "header_fields": 80,
+        "first_ts": "21/02/2018 08:33:25",
+        "middle_ts": "21/02/2018 02:21:53",
+        "last_ts": "21/02/2018 02:33:29",
+        "last_fields": 80,
+        "ends_with_newline": true,
+        "last_row_tail": ",0,0,0,0,0,0,5,935,2,299,65535,32768,1,20,0,0,0,0,0,0,0,0,Benign"
+      },
+      "audit": {
+        "columns": 80,
+        "canonical_covered": 78,
+        "canonical_required": 78,
+        "model_covered": 70,
+        "model_required": 70,
+        "aliases_applied": 50,
+        "duplicated": {
+          "Fwd Header Length.1": "Fwd Header Length"
+        },
+        "unresolved": [],
+        "unknown_2018_columns": [],
+        "identity_columns_present": [
+          "Protocol",
+          "Timestamp"
+        ],
+        "complete": true
+      }
+    }
+  ],
+  "caveat": "Tier-D (cross-dataset) numbers describe models trained on CICIDS2017 and evaluated on CSE-CIC-IDS2018 flows. They are the most honest generalisation estimate in this project: no stratified sampling, no shared-day leakage. Attack families absent from the downloaded 2018 files are reported as 'not covered' and are NOT scored as zero."
+}
