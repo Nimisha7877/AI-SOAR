@@ -1,0 +1,51 @@
+{
+  "stage": "multiclass",
+  "test_macro_f1": 0.9986,
+  "per_class": {
+    "BruteForce": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 938
+    },
+    "DoS": {
+      "precision": 0.9998,
+      "recall": 0.9998,
+      "f1": 0.9998,
+      "support": 19446
+    },
+    "DDoS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 12801
+    },
+    "PortScan": {
+      "precision": 0.9997,
+      "recall": 0.9998,
+      "f1": 0.9998,
+      "support": 10941
+    },
+    "WebAttack": {
+      "precision": 0.9907,
+      "recall": 0.9907,
+      "f1": 0.9907,
+      "support": 214
+    },
+    "Botnet": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 195
+    },
+    "Infiltration": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 4
+    }
+  },
+  "confusion_matrix_png": "multiclass_test_cm.png",
+  "generated_at": "2026-09-04T18:11:12.073119+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

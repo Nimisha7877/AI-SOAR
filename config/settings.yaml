@@ -1,0 +1,51 @@
+﻿# ============================================================================
+# AI SOAR - central settings
+# ----------------------------------------------------------------------------
+# Every module reads configuration from here (via ai_soar.config.get_settings).
+# Secrets NEVER go in this file - they come from environment variables / .env
+# (see .env.example). Paths are relative to the project root unless absolute.
+# ============================================================================
+
+project_name: ai-soar
+version: 0.1.0
+
+paths:
+  raw: data/raw                    # original CICIDS2017 CSVs (immutable)
+  pcap: data/pcap                  # captures for real-time replay
+  interim: data/interim            # cleaned + deduplicated, pre-split
+  processed: data/processed        # final train/val/test parquet splits
+  external: data/external          # CSE-CIC-IDS2018 (cross-dataset eval)
+  models: artifacts/models         # trained model weights + metadata
+  reports: artifacts/reports       # metrics, confusion matrices, eval reports
+  incidents: artifacts/incidents   # actuator incident log (JSON records)
+  knowledge_base: knowledge_base   # RAG source documents
+
+logging:
+  level: INFO                      # DEBUG | INFO | WARNING | ERROR
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+  file: null                       # e.g. artifacts/ai_soar.log to enable file logging
+
+api:
+  host: 0.0.0.0                    # must stay 0.0.0.0 for container/preview use
+  port: 8000
+
+n8n:
+  enabled: false                   # flip true once n8n is running
+  base_url: http://localhost:5678
+  webhook_path: /webhook/ai-soar
+  api_key: null                    # override with AI_SOAR_N8N_API_KEY
+
+llm:
+  provider: ollama                 # ollama | openai | anthropic | gemini
+  model: llama3
+  base_url: http://localhost:11434 # ollama default; ignored for hosted providers
+  api_key: null                    # override with AI_SOAR_LLM_API_KEY
+  temperature: 0.2
+  max_tokens: 1024
+  rag_top_k: 4
+
+response:
+  backend: simulated               # simulated (demo) | live (real infra)
+  require_approval_for:            # destructive actions need a human gate
+    - host_isolation
+    - firewall_block_source

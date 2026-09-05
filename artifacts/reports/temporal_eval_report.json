@@ -1,0 +1,61 @@
+{
+  "split": "train=Mon-Thu, test=Friday (unseen day)",
+  "gate_on_friday": {
+    "auc": 0.8527,
+    "f1": 0.5136,
+    "precision": 0.9989,
+    "recall": 0.3457,
+    "false_positives": 89,
+    "false_negatives": 156637,
+    "threshold": 0.5
+  },
+  "unseen_family_behaviour": {
+    "DDoS": {
+      "rows": 128014,
+      "predicted_as": {
+        "DoS": 128011,
+        "Infiltration": 3
+      },
+      "confidence": {
+        "mean": 0.9998,
+        "median": 1.0,
+        "frac_above_0.9": 1.0
+      }
+    },
+    "PortScan": {
+      "rows": 109418,
+      "predicted_as": {
+        "Infiltration": 102240,
+        "DoS": 4156,
+        "BruteForce": 2823,
+        "WebAttack": 199
+      },
+      "confidence": {
+        "mean": 0.9938,
+        "median": 0.9995,
+        "frac_above_0.9": 0.9733
+      }
+    },
+    "Botnet": {
+      "rows": 1948,
+      "predicted_as": {
+        "Infiltration": 1948
+      },
+      "confidence": {
+        "mean": 0.991,
+        "median": 0.9934,
+        "frac_above_0.9": 1.0
+      }
+    }
+  },
+  "system_macro_f1_present_families": 0.2091,
+  "families_present_on_friday": [
+    "BENIGN",
+    "DDoS",
+    "PortScan",
+    "Botnet"
+  ],
+  "confusion_matrix_png": "temporal_system_cm.png",
+  "generated_at": "2026-09-04T19:00:07.230451+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

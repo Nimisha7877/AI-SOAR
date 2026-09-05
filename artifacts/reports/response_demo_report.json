@@ -1,0 +1,35 @@
+{
+  "generated_by": "scripts/demo_response.py",
+  "split": "test",
+  "rows_scored": 2000,
+  "flows_per_second": 497.3,
+  "latency_ms": {
+    "mean": 1.545,
+    "p95": 3.324,
+    "p99": 4.22
+  },
+  "decisions": {
+    "auto_response": 323,
+    "log_only": 1676,
+    "human_approval": 1
+  },
+  "family_accuracy_upper_bound": 1.0,
+  "incidents_created_this_run": 324,
+  "incident_summary": {
+    "total_incidents": 324,
+    "by_status": {
+      "auto_resolved": 324
+    },
+    "by_family": {
+      "DDoS": 101,
+      "PortScan": 84,
+      "DoS": 132,
+      "BruteForce": 6,
+      "Botnet": 1
+    },
+    "pending_approval": []
+  },
+  "auto_approved": true,
+  "incident_log": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\artifacts\\incidents\\incidents.jsonl",
+  "STANDING_CAVEAT": "Flows come from the stratified test split: incident quality here is an UPPER BOUND. Honest generalization numbers live in leakage_audit_report.json, temporal_eval_report.json and (pending) the CSE-CIC-IDS2018 cross-dataset tier."
+}

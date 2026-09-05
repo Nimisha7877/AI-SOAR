@@ -1,0 +1,56 @@
+# ============================================================================
+# .dockerignore - keeps the build context small and secrets/datasets out.
+# Without this file `docker build` copies the whole project folder (data/ is
+# 5+ GB, venv/ is another ~500 MB) into the daemon before it even reads the
+# Dockerfile. Everything listed here is never sent, so it can never leak into
+# an image layer either.
+# ============================================================================
+
+# ---------- datasets (never in the image) ----------
+data/
+
+# ---------- python environments & caches ----------
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------- secrets ----------
+.env
+.env.local
+*.pem
+*.key
+config/secrets.yaml
+
+# ---------- VCS / editor ----------
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+*.swp
+
+# ---------- generated / not needed at runtime ----------
+docs/
+notebooks/
+*.ipynb
+n8n_automation/
+*.log
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# NOTE: artifacts/ is deliberately NOT ignored - the trained models (~8 MB),
+# evaluation reports and incident logs are baked in so the container can serve
+# /predict and rebuild the dashboard with no dataset and no retraining.

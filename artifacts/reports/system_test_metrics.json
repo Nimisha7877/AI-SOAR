@@ -1,0 +1,56 @@
+{
+  "stage": "cascaded_system",
+  "test_macro_f1_8families": 0.9554,
+  "per_class": {
+    "BENIGN": {
+      "precision": 1.0,
+      "recall": 0.999,
+      "f1": 0.9995,
+      "support": 217097
+    },
+    "BruteForce": {
+      "precision": 0.9989,
+      "recall": 1.0,
+      "f1": 0.9995,
+      "support": 938
+    },
+    "DoS": {
+      "precision": 0.9977,
+      "recall": 0.9997,
+      "f1": 0.9987,
+      "support": 19446
+    },
+    "DDoS": {
+      "precision": 0.9998,
+      "recall": 1.0,
+      "f1": 0.9999,
+      "support": 12801
+    },
+    "PortScan": {
+      "precision": 0.9917,
+      "recall": 0.9998,
+      "f1": 0.9958,
+      "support": 10941
+    },
+    "WebAttack": {
+      "precision": 0.9815,
+      "recall": 0.9907,
+      "f1": 0.986,
+      "support": 214
+    },
+    "Botnet": {
+      "precision": 0.6884,
+      "recall": 0.9744,
+      "f1": 0.8068,
+      "support": 195
+    },
+    "Infiltration": {
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1": 0.8571,
+      "support": 4
+    }
+  },
+  "generated_at": "2026-09-04T18:11:26.024309+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

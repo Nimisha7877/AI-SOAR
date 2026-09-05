@@ -1,0 +1,77 @@
+{
+  "target_recall": 0.95,
+  "sweep": [
+    {
+      "threshold": 0.5,
+      "recall": 0.3457,
+      "misses": 156637,
+      "false_positives": 89,
+      "fp_rate_on_benign": 0.00022
+    },
+    {
+      "threshold": 0.3,
+      "recall": 0.3464,
+      "misses": 156459,
+      "false_positives": 192,
+      "fp_rate_on_benign": 0.00048
+    },
+    {
+      "threshold": 0.2,
+      "recall": 0.3468,
+      "misses": 156365,
+      "false_positives": 251,
+      "fp_rate_on_benign": 0.00063
+    },
+    {
+      "threshold": 0.1,
+      "recall": 0.4799,
+      "misses": 124511,
+      "false_positives": 705,
+      "fp_rate_on_benign": 0.00176
+    },
+    {
+      "threshold": 0.05,
+      "recall": 0.5401,
+      "misses": 110101,
+      "false_positives": 2101,
+      "fp_rate_on_benign": 0.00524
+    },
+    {
+      "threshold": 0.02,
+      "recall": 0.5438,
+      "misses": 109211,
+      "false_positives": 12996,
+      "fp_rate_on_benign": 0.03239
+    },
+    {
+      "threshold": 0.01,
+      "recall": 0.5525,
+      "misses": 107130,
+      "false_positives": 38328,
+      "fp_rate_on_benign": 0.09553
+    },
+    {
+      "threshold": 0.005,
+      "recall": 1.0,
+      "misses": 0,
+      "false_positives": 401206,
+      "fp_rate_on_benign": 1.0
+    },
+    {
+      "threshold": 0.001,
+      "recall": 1.0,
+      "misses": 0,
+      "false_positives": 401206,
+      "fp_rate_on_benign": 1.0
+    }
+  ],
+  "chosen": {
+    "threshold": 0.005,
+    "recall": 1.0,
+    "misses": 0,
+    "false_positives": 401206,
+    "fp_rate_on_benign": 1.0
+  },
+  "generated_at": "2026-09-04T19:06:00.778880+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

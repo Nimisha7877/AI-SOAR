@@ -1,0 +1,60 @@
+# ---------- data (large, never commit) ----------
+data/raw/
+data/pcap/
+data/interim/
+data/processed/
+data/external/
+!data/**/.gitkeep
+
+# ---------- artifacts ----------
+# NOTE: ignore CONTENTS (dir/*) not the directory itself, otherwise the
+# re-include rules below cannot work (git refuses to descend into an
+# excluded directory).
+artifacts/models/*
+artifacts/reports/*
+artifacts/incidents/*
+!artifacts/**/.gitkeep
+
+# trained models are small (~8 MB total) -> committing them makes a fresh clone
+# immediately runnable (predict + dashboard) with no retraining step.
+!artifacts/models/*.joblib
+!artifacts/models/*.json
+
+# small demo outputs we DO commit, so a fresh clone can rebuild the dashboard:
+!artifacts/reports/*.json
+!artifacts/reports/*.png
+!artifacts/incidents/incidents.jsonl
+!artifacts/incidents/explanations.jsonl
+
+# ---------- secrets ----------
+.env
+.env.local
+*.pem
+*.key
+config/secrets.yaml
+
+# ---------- python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# ---------- tooling caches ----------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# ---------- os / editor ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

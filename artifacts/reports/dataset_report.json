@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-09-04T16:23:01.866159+00:00",
+  "sources": {
+    "monday": {
+      "rows_in": 529918,
+      "inf_cells": 810,
+      "rows_with_nan_dropped": 437,
+      "duplicate_rows_dropped": 20643,
+      "rows_out": 508838,
+      "split": "train",
+      "parquet": "data\\processed\\train\\monday.parquet",
+      "families": {
+        "BENIGN": 508838
+      }
+    },
+    "tuesday": {
+      "rows_in": 445909,
+      "inf_cells": 327,
+      "rows_with_nan_dropped": 264,
+      "duplicate_rows_dropped": 19238,
+      "rows_out": 426407,
+      "split": "train",
+      "parquet": "data\\processed\\train\\tuesday.parquet",
+      "families": {
+        "BENIGN": 417034,
+        "BruteForce": 9373
+      }
+    },
+    "wednesday": {
+      "rows_in": 692703,
+      "inf_cells": 1586,
+      "rows_with_nan_dropped": 1297,
+      "duplicate_rows_dropped": 73194,
+      "rows_out": 618212,
+      "split": "train",
+      "parquet": "data\\processed\\train\\wednesday.parquet",
+      "families": {
+        "DoS": 194469,
+        "BENIGN": 423743
+      }
+    },
+    "thursday_morning": {
+      "rows_in": 170366,
+      "inf_cells": 250,
+      "rows_with_nan_dropped": 135,
+      "duplicate_rows_dropped": 6052,
+      "rows_out": 164179,
+      "split": "train",
+      "parquet": "data\\processed\\train\\thursday_morning.parquet",
+      "families": {
+        "BENIGN": 162036,
+        "WebAttack": 2143
+      }
+    },
+    "thursday_afternoon": {
+      "rows_in": 288602,
+      "inf_cells": 396,
+      "rows_with_nan_dropped": 207,
+      "duplicate_rows_dropped": 30238,
+      "rows_out": 258157,
+      "split": "train",
+      "parquet": "data\\processed\\train\\thursday_afternoon.parquet",
+      "families": {
+        "BENIGN": 258121,
+        "Infiltration": 36
+      }
+    },
+    "friday_morning": {
+      "rows_in": 191033,
+      "inf_cells": 216,
+      "rows_with_nan_dropped": 122,
+      "duplicate_rows_dropped": 6867,
+      "rows_out": 184044,
+      "split": "test",
+      "parquet": "data\\processed\\test\\friday_morning.parquet",
+      "families": {
+        "BENIGN": 182096,
+        "Botnet": 1948
+      }
+    },
+    "friday_afternoon_portscan": {
+      "rows_in": 286467,
+      "inf_cells": 727,
+      "rows_with_nan_dropped": 371,
+      "duplicate_rows_dropped": 52908,
+      "rows_out": 233188,
+      "split": "test",
+      "parquet": "data\\processed\\test\\friday_afternoon_portscan.parquet",
+      "families": {
+        "BENIGN": 123770,
+        "PortScan": 109418
+      }
+    },
+    "friday_afternoon_ddos": {
+      "rows_in": 225745,
+      "inf_cells": 64,
+      "rows_with_nan_dropped": 34,
+      "duplicate_rows_dropped": 2357,
+      "rows_out": 223354,
+      "split": "test",
+      "parquet": "data\\processed\\test\\friday_afternoon_ddos.parquet",
+      "families": {
+        "DDoS": 128014,
+        "BENIGN": 95340
+      }
+    }
+  },
+  "totals": {
+    "rows_in": 2830743,
+    "inf_cells": 4376,
+    "rows_with_nan_dropped": 2867,
+    "duplicate_rows_dropped": 211497,
+    "rows_out": 2616379
+  },
+  "family_totals": {
+    "BENIGN": 2170978,
+    "BruteForce": 9373,
+    "DoS": 194469,
+    "WebAttack": 2143,
+    "Infiltration": 36,
+    "Botnet": 1948,
+    "PortScan": 109418,
+    "DDoS": 128014
+  },
+  "split_rows": {
+    "train": 1975793,
+    "test": 640586
+  }
+}

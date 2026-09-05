@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-09-04T17:20:58.872750+00:00",
+  "seed": 42,
+  "fracs": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.09999999999999995
+  },
+  "counts": {
+    "train": {
+      "BENIGN": 1736783,
+      "Infiltration": 28,
+      "WebAttack": 1715,
+      "BruteForce": 7497,
+      "DoS": 155576,
+      "DDoS": 102412,
+      "PortScan": 87536,
+      "Botnet": 1558
+    },
+    "val": {
+      "BENIGN": 217098,
+      "Infiltration": 4,
+      "WebAttack": 214,
+      "BruteForce": 938,
+      "DoS": 19447,
+      "DDoS": 12801,
+      "PortScan": 10941,
+      "Botnet": 195
+    },
+    "test": {
+      "BENIGN": 217097,
+      "Infiltration": 4,
+      "WebAttack": 214,
+      "BruteForce": 938,
+      "DoS": 19446,
+      "DDoS": 12801,
+      "PortScan": 10941,
+      "Botnet": 195
+    }
+  }
+}

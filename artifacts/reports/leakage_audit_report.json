@@ -1,0 +1,65 @@
+{
+  "near_dup_overlap": {
+    "stratified": 0.0654,
+    "hardened": 0.0851
+  },
+  "rows": {
+    "train": 1883791,
+    "val": 209310,
+    "test": 523278
+  },
+  "macro_f1_7families": {
+    "stratified": 0.9986,
+    "hardened": 0.6836
+  },
+  "macro_f1_8families_system": {
+    "stratified": 0.9554,
+    "hardened": 0.8072
+  },
+  "hardened_per_class": {
+    "BruteForce": {
+      "precision": 0.9979,
+      "recall": 1.0,
+      "f1": 0.9989,
+      "support": 1875
+    },
+    "DoS": {
+      "precision": 0.9978,
+      "recall": 0.9719,
+      "f1": 0.9847,
+      "support": 38894
+    },
+    "DDoS": {
+      "precision": 0.9984,
+      "recall": 0.9988,
+      "f1": 0.9986,
+      "support": 25603
+    },
+    "PortScan": {
+      "precision": 0.962,
+      "recall": 0.9979,
+      "f1": 0.9797,
+      "support": 21884
+    },
+    "WebAttack": {
+      "precision": 0.6801,
+      "recall": 0.9417,
+      "f1": 0.7898,
+      "support": 429
+    },
+    "Botnet": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 390
+    },
+    "Infiltration": {
+      "precision": 0.0172,
+      "recall": 1.0,
+      "f1": 0.0337,
+      "support": 7
+    }
+  },
+  "generated_at": "2026-09-04T18:25:01.624269+00:00",
+  "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
+}

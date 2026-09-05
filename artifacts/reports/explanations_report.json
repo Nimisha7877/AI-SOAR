@@ -1,0 +1,31 @@
+{
+  "generated_by": "scripts/explain_incidents.py",
+  "skip_llm": false,
+  "n_explained": 1,
+  "providers": {
+    "ollama": 1
+  },
+  "fallbacks": 0,
+  "total_seconds": 226.1,
+  "explanations": [
+    {
+      "incident_id": "INC-23C197A6",
+      "family": "DDoS",
+      "decision": "auto_response",
+      "status": "auto_resolved",
+      "provider": "ollama",
+      "is_fallback": false,
+      "context_chunks": 4,
+      "citations": [
+        "family_playbooks_and_policy.md#Global response policy",
+        "family_playbooks_and_policy.md#DDoS",
+        "family_playbooks_and_policy.md#preamble",
+        "family_playbooks_and_policy.md#Botnet"
+      ],
+      "words": 165,
+      "seconds": 226.1
+    }
+  ],
+  "explanations_log": "C:\\Users\\tiwar\\Desktop\\AI SOAR\\artifacts\\incidents\\explanations.jsonl",
+  "STANDING_CAVEAT": "Explanations are grounded in knowledge_base/ chunks and cite them; they describe model behaviour, not independent verification of it."
+}

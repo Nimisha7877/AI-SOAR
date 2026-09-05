@@ -1,0 +1,15 @@
+# AI SOAR - pinned runtime dependencies (mirrors pyproject.toml)
+pandas==2.2.2
+numpy==1.26.4
+pyarrow==17.0.0
+scikit-learn==1.5.1
+lightgbm==4.5.0
+shap==0.46.0
+pydantic==2.8.2
+PyYAML==6.0.2
+python-dotenv==1.0.1
+fastapi==0.115.0
+uvicorn==0.30.6
+httpx==0.27.2
+matplotlib==3.9.2
+seaborn==0.13.2
