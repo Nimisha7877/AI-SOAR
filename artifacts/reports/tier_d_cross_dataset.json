@@ -136,6 +136,36 @@
   },
   "inputs": {
     "files": {
+      "Friday-16-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 647220,
+        "row_groups": 11,
+        "columns": 81,
+        "missing": []
+      },
+      "Friday-23-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 944493,
+        "row_groups": 11,
+        "columns": 81,
+        "missing": []
+      },
+      "Thuesday-20-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 6933639,
+        "row_groups": 80,
+        "columns": 81,
+        "missing": []
+      },
+      "Thursday-22-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 942346,
+        "row_groups": 11,
+        "columns": 81,
+        "missing": []
+      },
+      "Wednesday-14-02-2018_TrafficForML_CICFlowMeter.parquet": {
+        "rows": 690509,
+        "row_groups": 11,
+        "columns": 81,
+        "missing": []
+      },
       "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.parquet": {
         "rows": 591283,
         "row_groups": 11,
@@ -143,69 +173,93 @@
         "missing": []
       }
     },
-    "total_rows": 591283
+    "total_rows": 10749490
   },
-  "rows_evaluated": 300000,
-  "seconds": 6.3,
+  "rows_evaluated": 10749490,
+  "seconds": 250.1,
   "nonfinite_cells": 0,
   "results": {
     "gate": {
       "threshold": 0.5,
-      "auc": 0.856079,
-      "detection_recall": 0.0,
+      "auc": 0.878901,
+      "detection_recall": 0.081572,
       "detection_recall_ci95": [
-        0.0,
-        1.8e-05
+        0.081062,
+        0.082084
       ],
-      "false_positives": 10,
-      "benign_flows": 91865,
-      "false_positive_rate": 0.00010886,
+      "false_positives": 3606,
+      "benign_flows": 9648065,
+      "false_positive_rate": 0.00037375,
       "false_positive_rate_ci95": [
-        5.9e-05,
-        0.0002
+        0.000362,
+        0.000386
       ],
-      "specificity": 0.999891,
+      "specificity": 0.999626,
       "specificity_ci95": [
-        0.9998,
-        0.999941
+        0.999614,
+        0.999638
       ],
-      "false_negatives": 208135,
-      "attack_flows": 208135
+      "false_negatives": 1011580,
+      "attack_flows": 1101425
     },
     "operational_impact": {
-      "benign_rows_auto_responded": 9,
-      "benign_auto_response_rate": 9.797e-05,
-      "benign_rows_human_approval": 1,
-      "benign_rows_unknown_queue": 0,
-      "attack_rows_auto_responded": 0,
-      "attack_rows_human_approval": 0,
-      "attack_rows_unknown_queue": 0,
-      "attack_rows_missed_by_gate": 208135
+      "benign_rows_auto_responded": 3541,
+      "benign_auto_response_rate": 0.00036702,
+      "benign_rows_human_approval": 3,
+      "benign_rows_unknown_queue": 62,
+      "attack_rows_auto_responded": 89842,
+      "attack_rows_human_approval": 2,
+      "attack_rows_unknown_queue": 1,
+      "attack_rows_missed_by_gate": 1011580
     },
     "families": {
       "BruteForce": {
-        "status": "not covered",
-        "support": 0,
-        "predicted": 9
+        "status": "covered",
+        "support": 94711,
+        "low_support": false,
+        "precision": 0.032483,
+        "recall": 0.000887,
+        "recall_ci95": [
+          0.000716,
+          0.001098
+        ],
+        "f1": 0.001727,
+        "predicted_as": 2586,
+        "gate_recall": 0.001626,
+        "stage2_recall_given_gate": 0.545455,
+        "unknown_routed": 0,
+        "unknown_routed_pct": 0.0
       },
       "DoS": {
-        "status": "not covered",
-        "support": 0,
-        "predicted": 0
+        "status": "covered",
+        "support": 200455,
+        "low_support": false,
+        "precision": 0.990898,
+        "recall": 0.446948,
+        "recall_ci95": [
+          0.444773,
+          0.449126
+        ],
+        "f1": 0.616033,
+        "predicted_as": 90416,
+        "gate_recall": 0.447357,
+        "stage2_recall_given_gate": 0.999086,
+        "unknown_routed": 1,
+        "unknown_routed_pct": 5e-06
       },
       "DDoS": {
         "status": "covered",
-        "support": 208135,
+        "support": 805945,
         "low_support": false,
         "precision": 0.0,
         "recall": 0.0,
         "recall_ci95": [
           0.0,
-          1.8e-05
+          5e-06
         ],
         "f1": 0.0,
-        "predicted_as": 0,
-        "gate_recall": 0.0,
+        "predicted_as": 1,
+        "gate_recall": 2e-05,
         "stage2_recall_given_gate": 0.0,
         "unknown_routed": 0,
         "unknown_routed_pct": 0.0
@@ -213,12 +267,24 @@
       "PortScan": {
         "status": "not covered",
         "support": 0,
-        "predicted": 0
+        "predicted": 380
       },
       "WebAttack": {
-        "status": "not covered",
-        "support": 0,
-        "predicted": 1
+        "status": "covered",
+        "support": 314,
+        "low_support": true,
+        "precision": 0.0,
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.012087
+        ],
+        "f1": 0.0,
+        "predicted_as": 5,
+        "gate_recall": 0.0,
+        "stage2_recall_given_gate": 0.0,
+        "unknown_routed": 0,
+        "unknown_routed_pct": 0.0
       },
       "Botnet": {
         "status": "not covered",
@@ -232,21 +298,21 @@
       }
     },
     "families_covered": [
-      "DDoS"
-    ],
-    "families_not_covered": [
       "BruteForce",
       "DoS",
+      "DDoS",
+      "WebAttack"
+    ],
+    "families_not_covered": [
       "PortScan",
-      "WebAttack",
       "Botnet",
       "Infiltration"
     ],
     "macro_over_covered_attack_families": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "n_families": 1,
+      "precision": 0.255845,
+      "recall": 0.111959,
+      "f1": 0.15444,
+      "n_families": 4,
       "n_families_total": 7
     },
     "predicted_labels": [
@@ -262,25 +328,63 @@
     ]
   },
   "routing_decisions": {
-    "log_only": 299990,
-    "auto_response": 9,
-    "human_approval": 1
+    "log_only": 10656039,
+    "auto_response": 93383,
+    "unknown_queue": 63,
+    "human_approval": 5
   },
   "routing_decisions_by_truth": {
-    "log_only|attack": 208135,
-    "log_only|benign": 91855,
-    "auto_response|attack": 0,
-    "auto_response|benign": 9,
-    "human_approval|attack": 0,
-    "human_approval|benign": 1
+    "log_only|attack": 1011580,
+    "log_only|benign": 9644459,
+    "auto_response|attack": 89842,
+    "auto_response|benign": 3541,
+    "unknown_queue|attack": 1,
+    "unknown_queue|benign": 62,
+    "human_approval|attack": 2,
+    "human_approval|benign": 3
   },
   "per_day": {
+    "Friday-16-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 647220,
+      "benign": 446765,
+      "benign_flagged": 16,
+      "attack": 200455,
+      "attack_missed": 110780
+    },
+    "Friday-23-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 944493,
+      "benign": 943952,
+      "benign_flagged": 610,
+      "attack": 541,
+      "attack_missed": 541
+    },
+    "Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 6933639,
+      "benign": 6358168,
+      "benign_flagged": 2230,
+      "attack": 575471,
+      "attack_missed": 575455
+    },
+    "Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 942346,
+      "benign": 942005,
+      "benign_flagged": 389,
+      "attack": 341,
+      "attack_missed": 341
+    },
+    "Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv": {
+      "rows": 690509,
+      "benign": 596366,
+      "benign_flagged": 351,
+      "attack": 94143,
+      "attack_missed": 93989
+    },
     "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv": {
-      "rows": 300000,
-      "benign": 91865,
+      "rows": 591283,
+      "benign": 360809,
       "benign_flagged": 10,
-      "attack": 208135,
-      "attack_missed": 208135
+      "attack": 230474,
+      "attack_missed": 230474
     }
   },
   "confidence_histogram_attack_rows": {
@@ -319,15 +423,15 @@
       0,
       0,
       0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
+      1,
+      14,
+      126,
+      10,
+      15,
+      2,
+      1,
+      9,
+      89667
     ]
   },
   "confusion_matrix": {
@@ -344,12 +448,45 @@
     ],
     "rows_true": [
       [
-        91855,
-        9,
-        0,
-        0,
-        0,
+        9644459,
+        2502,
+        807,
         1,
+        231,
+        3,
+        0,
+        0,
+        62
+      ],
+      [
+        94557,
+        84,
+        0,
+        0,
+        70,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        110780,
+        0,
+        89593,
+        0,
+        79,
+        2,
+        0,
+        0,
+        1
+      ],
+      [
+        805929,
+        0,
+        16,
+        0,
+        0,
+        0,
         0,
         0,
         0
@@ -366,40 +503,7 @@
         0
       ],
       [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        208135,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
+        314,
         0,
         0,
         0,
@@ -455,8 +559,7 @@
     "Deduplication is window-local (each chunk vs the previous one), so runs of identical flows longer than 2 x chunksize can survive. Per-family duplicate rates are reported by scripts/build_dataset2018.py.",
     "No 2018 data was used for training, validation, threshold selection or feature choice - which is what makes this tier an honest generalisation estimate."
   ],
-  "partial_run": true,
-  "note": "PARTIAL RUN (--file/--limit-rows): numbers describe a subset only and must not be quoted as tier-D results. Re-run without filters for the real numbers.",
-  "generated_at": "2026-09-05T19:40:20.303250+00:00",
+  "partial_run": false,
+  "generated_at": "2026-09-07T16:59:53.639808+00:00",
   "caveat": "CICIDS2017 stratified-split scores are an UPPER BOUND: near-duplicate flows from the same attack burst appear across splits. Temporal (Mon-Thu -> Friday) and cross-dataset (CSE-CIC-IDS2018) results are the honest generalization numbers."
 }
