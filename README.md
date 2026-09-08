@@ -5,9 +5,11 @@ A SOAR platform that replaces signature-based detection and first-line triage wi
 two-stage classifier, keeps response declarative and auditable, and explains every action with an
 RAG-grounded LLM.
 
-> **Scope note:** research/demo build on CICIDS2017 network flow data. Detection, response
-> orchestration and explanation are real and measured; **actuators are simulated** (no live
-> firewall/EDR/DNS is touched) and n8n + live pcap ingestion are future work.
+> **Scope note:** research/demo build. Models are trained on CICIDS2017 network flow data and
+> evaluated on four progressively harder tiers, ending with **10,749,490 flows from
+> CSE-CIC-IDS2018** — an environment the models never saw. Detection, response orchestration and
+> explanation are real and measured; **actuators are simulated** (no live firewall/EDR/DNS is
+> touched) and n8n + live pcap ingestion are future work.
 
 ---
 
@@ -41,7 +43,8 @@ RAG-grounded LLM.
 | Audit trail | ticket comments | append-only event-sourced JSONL (actor, approver, timestamp) |
 | Alert volume | analyst is the bottleneck → alert fatigue | auto-triage; only ambiguous / destructive cases reach a human |
 | Mean time to triage | minutes to hours per alert | **4.26 ms** p95 per flow (2,000-flow replay @ 362 flows/s) |
-| False positives | static thresholds, hand-tuned per environment | calibrated probabilities + a documented threshold sweep |
+| False positives | static thresholds, hand-tuned per environment | calibrated probabilities + a documented threshold sweep; **0.0374 % FP measured on 9.65 M benign flows from an unseen environment** |
+| Behaviour in a new network | rules need re-tuning per site, silently | measured, published, and root-caused (tier D) instead of assumed |
 | Consistency | depends on the analyst on shift | same input → same decision, same written justification |
 | Knowledge retention | playbooks + tribal knowledge | versioned knowledge base; explanations cite it |
 | Compliance evidence | assembled manually from tickets | audit log already holds who decided what, when, and why |
@@ -56,8 +59,10 @@ analyst can challenge.
 
 **Where it is not better (honest):** rules are more interpretable and changeable instantly; a
 classifier needs labelled data, drifts when traffic changes, and is closed-set — it cannot name an
-attack it has never seen. That is exactly why this build keeps human approval gates and an
-`unknown_queue` rather than claiming full autonomy.
+attack it has never seen. Tier D proved the drift point on 10.75 M unseen flows: detection recall
+fell to 8.16 % even though the model still *ranked* attacks correctly (AUC 0.8789). That is exactly
+why this build keeps human approval gates and an `unknown_queue` rather than claiming full
+autonomy.
 
 **Net effect, in one line each:**
 
@@ -68,8 +73,10 @@ attack it has never seen. That is exactly why this build keeps human approval ga
    so an analyst can challenge the machine's reasoning instead of guessing it.
 4. **Auditability** — approvals, dismissals and actuators are event-sourced, which is what a
    compliance reviewer actually asks for.
-5. **Measured honesty** — the project publishes its own inflation (0.9986 upper bound vs 0.6836
-   hardened), which is the difference between a demo and a defensible result.
+5. **Measured honesty** — the project publishes its own inflation *and* its own worst case:
+   0.9986 (stratified upper bound) → 0.6836 (burst-hardened) → 0.2091 (unseen day) → **0.1544**
+   (unseen environment, 10.75 M flows). That gradient is the difference between a demo and a
+   defensible result.
 
 ---
 
@@ -118,9 +125,9 @@ attack it has never seen. That is exactly why this build keeps human approval ga
 
 | Layer | Module | Responsibility |
 |---|---|---|
-| Ingestion | `src/ai_soar/data/` | schema, chunked loading, cleaning, label collapse, splits |
+| Ingestion | `src/ai_soar/data/` | schema, chunked loading, cleaning, label collapse, splits, **2018 schema adapter** |
 | Models | `src/ai_soar/models/` | binary gate + family classifier (LightGBM), registry/metadata |
-| Evaluation | `src/ai_soar/evaluation/` | macro/per-class F1, confusion matrices, leakage audit |
+| Evaluation | `src/ai_soar/evaluation/` | macro/per-class F1, confusion matrices, leakage audit, **four-tier protocol** |
 | Inference | `src/ai_soar/inference/` | FastAPI service, cascade, confidence gate, decision policy |
 | Response | `src/ai_soar/response/` | policy catalog, playbooks, actuators, approval gates, audit store |
 | Explain | `src/ai_soar/explain/` | RAG store/retrieval, LLM client (4 providers), explainer + fallback |
@@ -132,6 +139,12 @@ attack it has never seen. That is exactly why this build keeps human approval ga
 
 - **Two-stage cascade** — cheap binary gate first, expensive 7-way classifier only on flagged flows.
 - **Evidence-gated automation** — each family's automation level comes from its burst-hardened F1.
+- **Four-tier evaluation protocol** — stratified upper bound → burst-hardened → temporal → cross-dataset,
+  each tier removing exactly one flattering assumption, all four published.
+- **Schema adapter at the ingestion boundary** — adding CSE-CIC-IDS2018 (18 renamed columns, one
+  duplicated column, four extra identity columns, a different label vocabulary) required **zero
+  changes to the inference path**: models, predictor, response engine, explainer and dashboard were
+  untouched. The adapter converts 2018 flows into the 2017 canonical shape at the door.
 - **Two human approval gates** for destructive actions; every approval is event-sourced with actor id.
 - **Append-only audit trail** (JSONL) — incidents, actions, approvals, dismissals, notes.
 - **Grounded LLM explanations** — retrieval-augmented, citations per explanation, MITRE ids;
@@ -154,15 +167,25 @@ attack it has never seen. That is exactly why this build keeps human approval ga
 | LLM / RAG | Ollama (qwen2.5-coder:3b), TF-IDF retrieval (scikit-learn), httpx |
 | Reporting | matplotlib 3.9, seaborn 0.13 |
 | Config / secrets | PyYAML + python-dotenv, typed pydantic settings |
+| Storage | **no external database** — parquet for data, append-only JSONL for incidents/audit, an in-memory TF-IDF index for RAG, JSON for reports. Benign flows never reach the store, so write volume is *incident* volume, not flow volume. |
 | Packaging | `bootstrap.ps1` (Windows), Docker (python:3.12-slim + libgomp1) |
-| Dataset | CICIDS2017 (2.8M flows, 80 features, 15 labels); CSE-CIC-IDS2018 for cross-dataset work |
+| Dataset (train) | CICIDS2017 — 2,830,743 flows, 80 features, 15 labels collapsed to 8 families |
+| Dataset (evaluate) | CSE-CIC-IDS2018 — 13,191,623 raw flows over 6 days → 10,749,490 clean. Used for tier D **only**: never for training, validation, threshold selection or feature choice. |
 
 ---
 
 ## Results & metrics
 
-**Data pipeline:** 2,830,743 raw rows → 2,616,379 clean rows (4,376 `Inf` cells fixed, 2,867 NaN
-rows dropped, **211,497 duplicate flows removed**), 15 raw labels collapsed to 8 families.
+**Data pipeline — CICIDS2017 (training):** 2,830,743 raw rows → 2,616,379 clean rows (4,376 `Inf`
+cells fixed, 2,867 NaN rows dropped, **211,497 duplicate flows removed**), 15 raw labels collapsed
+to 8 families.
+
+**Data pipeline — CSE-CIC-IDS2018 (evaluation):** 13,191,623 raw rows → **10,749,490** clean rows
+(1 junk header row, 74,595 rows dropped for `Inf`/NaN, **2,367,537 duplicates removed**). Duplicate
+rates were wildly family-dependent — 75.2 % of BruteForce rows and 66.7 % of DoS rows were repeats,
+versus 11.2 % of benign — so dedup was attributed per family rather than reported as one number.
+Built by streaming chunks with a sliding-window dedup, because these CSVs are grouped by victim
+machine rather than ordered by time.
 
 **Evaluation — read in this order.** CICIDS2017 contains near-duplicate flows, so a random split
 inflates every score. Each tier answers a different question:
@@ -172,29 +195,81 @@ inflates every score. Each tier answers a different question:
 | A. Stratified test | upper bound (duplicates present) | stage-1 AUC **1.000** / F1 0.9974; stage-2 macro-F1 **0.9986**; cascaded 0.9554 |
 | B. Burst-hardened split | honest discrimination | macro-F1 **0.6836** → measured **inflation 0.315** |
 | C. Temporal Mon–Thu → Friday | unseen day | gate AUC 0.8527, recall 0.3457 @ 0.5; system macro-F1 0.2091 |
-| D. Cross-dataset (CSE-CIC-IDS2018) | unseen environment | in progress — 5.45 GB downloaded & verified |
+| D. Cross-dataset → CSE-CIC-IDS2018 | unseen environment, 10,749,490 flows | gate AUC **0.8789**; recall **8.16 %** @ 0.5; **FP 0.0374 %**; macro-F1 **0.1544** |
 
-**Per-family hardened F1 → the automation policy it produced:**
+### Tier D in detail — the models meet a network they never saw
 
-| Family | Hardened F1 | Policy | MITRE |
+10,749,490 flows scored in **250 s (~43,000 flows/s)**, **0 non-finite cells**.
+
+**Gate:** AUC **0.8789** · detection recall **8.1572 %** (CI95 8.1062–8.2084) · **false-positive
+rate 0.0374 %** (CI95 0.0362–0.0386) on **9,648,065 benign flows** · specificity **99.9626 %**.
+
+| Family | Support | Recall @0.5 | Precision | F1 | Passed gate | Stage-2 correct \| given gate |
+|---|---|---|---|---|---|---|
+| DoS | 200,455 | **44.69 %** | **99.09 %** | 0.6160 | 44.74 % | **99.91 %** |
+| BruteForce | 94,711 | 0.09 % | 3.25 % | 0.0017 | 0.16 % | 54.55 % |
+| DDoS | 805,945 | **0.00 %** | 0.00 % | 0.0000 | 0.00 % | — |
+| WebAttack | 314 | 0.00 % | 0.00 % | 0.0000 | 0.00 % | — (LOW SUPPORT) |
+| PortScan / Botnet / Infiltration | 0 | not present in the six downloaded days — **excluded from the macro average, never scored as zero** | | | | |
+
+Macro over the 4 covered attack families: P 0.2558 · R 0.1120 · **F1 0.1544**.
+
+**What the SOAR would actually have done:**
+
+| Routing decision | Flows | Attack | Benign |
 |---|---|---|---|
-| BruteForce | 0.999 | `auto_response` | T1110 |
-| DDoS | 0.999 | `auto_response` | T1498 |
-| DoS | 0.985 | `auto_response` | T1499 |
-| PortScan | 0.980 | `auto_response` | T1046 |
-| WebAttack | 0.790 | `human_approval` | T1190 |
-| Botnet | 0.000 | `human_approval` | T1071 |
-| Infiltration | 0.034 | `human_approval` | T1566 / T1046 |
+| `log_only` | 10,656,039 (99.13 %) | 1,011,580 | 9,644,459 |
+| `auto_response` | 93,383 (0.87 %) | 89,842 | 3,541 |
+| `human_approval` | 5 | 2 | 3 |
+| `unknown_queue` | 63 | 1 | 62 |
+
+→ **when the system acts alone it is right 96.2 % of the time** (89,842 / 93,383). The
+cross-environment failure mode is *missed attacks*, not runaway automation: 3,541 benign flows
+(0.0367 %) would have been auto-isolated across six days of traffic.
+
+**Root cause — isolated, not guessed.** `scripts/diagnose_tier_d.py` scores the 2017 test split as a
+control, sweeps nine thresholds, and tests every high-gain feature for a unit/scale mismatch under
+three simultaneous conditions (IQR moved >5×, p5–p95 windows non-overlapping, and one factor
+explaining every quantile), per file as well as pooled — because pooling six days can hide a
+single-day mapping error. It cleared feature misalignment (booster metadata == `FEATURE_COLUMNS`)
+and cleared unit mismatches, then localised the real cause: **2018 attacks carry roughly 5× smaller
+packet-length statistics than 2017 attacks** (Bwd Packet Length Std 1,755 → 268.8; Average Packet
+Size 795.7 → 109.7), and those are precisely the gate's highest-gain features.
+
+**Calibration ≠ discrimination.** Tier D *ranks* better than tier C (AUC 0.8789 vs 0.8527, per-day
+0.83–0.99) yet recalls far less at the deployed cut (8.16 % vs 34.57 %). The deficit is in the
+probability scale, not in the model's ability to separate attack from benign — which is why the
+numbers below are reported as *recall at a threshold calibrated on 2017*, always next to the AUC.
+
+**Internal consistency:** per-day family counts reconcile exactly with the build census —
+DDoS = Tuesday-20 (575,471) + Wednesday-21 (230,474) = 805,945; DoS = Friday-16 (200,455);
+BruteForce = Wednesday-14 (94,143) + 568 = 94,711; and the four routing decisions sum to
+10,749,490.
+
+**Deliberate choice:** neither the 0.5 gate cut nor the per-family automation allowlist was re-tuned
+on 2018 data — that would be fitting the evaluation set. Re-deriving both from cross-dataset
+evidence is future work (merged-training A/B), with its own split.
 
 **Operational numbers (2,000-flow replay):** 324 incidents raised, 362 flows/s, p95 **4.26 ms**/flow;
-7 human approvals exercised through the audit log; verdict check on the replay — 324 TP / 0 FP
-(stratified split ⇒ upper bound; realistic FP rates come from tiers B–D).
+7 human approvals exercised through the audit log; 324 TP / 0 FP on that replay — the zero is a
+stratified-split artifact, and the realistic figure is tier D's **0.0374 %**.
 
-**Known limitations:** Botnet (0.000) and Infiltration (n = 36 samples in the whole dataset) are
-effectively unmeasurable on CICIDS2017 — they are automated *never*, and are the main reason the
-2018 dataset is next. The classifier is closed-set: a threshold sweep showed no operating point that
-recalls unseen-family flows without a 100% false-positive rate, hence the confidence gate and
-`unknown_queue`.
+**Known limitations:**
+
+- **DDoS is blind cross-environment** — 0 of 805,945 flows, and DDoS is the family the hardened
+  evidence had automated *most* confidently (F1 0.999). An allowlist derived from same-distribution
+  evidence does not transfer between capture environments.
+- **The confidence floor is not a novelty detector** — only 63 of 10,749,490 flows reached
+  `unknown_queue`. An unseen-family attack is classified into a *known* family at ~1.0 confidence,
+  so containment comes from the human-approval route and per-family allowlisting, not from the gate.
+- Botnet (0.000) and Infiltration (n = 36 in the whole of CICIDS2017) remain unmeasurable, and the
+  six downloaded 2018 days contain **no PortScan, Botnet or Infiltration at all** — CSE-CIC-IDS2018
+  has no PortScan label, its nmap scan being part of the Infiltration scenario — so tier D can score
+  only 4 of 7 families.
+- 5 of the 6 2018 CSVs contain exactly 1,048,575 rows (2²⁰−1, Excel's row limit), so those days are
+  capped subsets; and since the files are machine-grouped rather than time-ordered, no temporal tier
+  is possible on 2018.
+- WebAttack support is 314 flows, flagged LOW SUPPORT, so its interval is wide.
 
 ---
 
@@ -223,6 +298,16 @@ recalls unseen-family flows without a 100% false-positive rate, hence the confid
    `firewall_block_source`, so a destructive action had silently bypassed the human gate.
    *Fix:* caught by verifying the audit log against the config; added the vocabulary check to the
    demo run. Lesson: never trust config, trust the emitted events.
+8. **A cross-dataset smoke test that looked exactly like a bug** — the first 2018 run reported gate
+   AUC 0.856 with detection recall of *precisely* 0.0000 %, which is either a serious finding or a
+   broken feature mapping, and the two need opposite responses. *Fix:* wrote a diagnostic that
+   scores the 2017 test split as a control, sweeps thresholds, and tests each high-gain feature for
+   a unit/scale mismatch only when three conditions hold together (>5× IQR move, non-overlapping
+   p5–p95 windows, one factor explaining every quantile) — checked per file as well as pooled, since
+   pooling six days hides a single-day mapping error. It cleared alignment and units and localised a
+   genuine packet-length scale shift. Two lessons: never judge a dataset from a prefix when rows are
+   grouped by machine (that slice was the single worst-case family), and always publish AUC next to
+   recall@threshold, because a threshold calibrated in one environment does not transfer.
 
 ---
 
@@ -240,7 +325,12 @@ JS, base64 images). Two views:
 
 **API:** `GET /health`, `POST /predict`, `POST /predict/batch` (+ Swagger UI at `/docs`).
 
-**Logs:** `artifacts/incidents/incidents.jsonl`, `explanations.jsonl`, `artifacts/reports/*.json`.
+**Logs:** `artifacts/incidents/incidents.jsonl`, `explanations.jsonl`.
+
+**Reports (`artifacts/reports/`):** `dataset_report.json`, `profile_report.json`,
+`leakage_audit_report.json`, `temporal_eval_report.json`, `threshold_sweep_report.json`,
+`cicids2018_verify_report.json`, `cicids2018_build_report.json`, `tier_d_diagnostic.json`,
+**`tier_d_cross_dataset.json`** + `tier_d_confusion_2018.png`.
 
 <!-- add screenshots when ready:
 ![Dashboard](docs/demo/dashboard.png)
@@ -266,29 +356,41 @@ venv\Scripts\python.exe scripts\serve_api.py                                    
 venv\Scripts\python.exe scripts\demo_response.py --rows 2000 --fresh --auto-approve  # incidents
 venv\Scripts\python.exe scripts\explain_incidents.py --family DDoS --limit 1         # LLM explain
 venv\Scripts\python.exe scripts\build_dashboard.py                                   # dashboard
-start docs\demo\dashboard.html                                                       # open it
+start docs\demo\dashboard.html                                                          # open it
 ```
 
 Full pipeline from raw CSVs (needs the dataset in `data/raw/`): `build_dataset.py` →
 `profile_dataset.py` → `make_stratified_splits.py` → `train_models.py` → `eval_leakage_audit.py` →
 `eval_temporal.py` → `eval_threshold_sweep.py`.
 
+Cross-dataset tier D (needs the CSE-CIC-IDS2018 CSVs in `data/external/cicids2018/`, ~5.45 GB, not
+committed): `verify_cicids2018.py --full` → `build_dataset2018.py` → `diagnose_tier_d.py` →
+`eval_cross_dataset.py` (~4 min for 10.75 M flows, ≲1 GB RAM).
+
 ---
 
 ## Future scope
 
-1. **Cross-dataset validation on CSE-CIC-IDS2018** (data downloaded) — schema/label mapping,
-   tier-D report, and a merged-training A/B to recover Botnet and Infiltration.
+1. **Merged-training A/B + recalibration (Step 9b)** — retrain on CICIDS2017 *and* CSE-CIC-IDS2018
+   with a split that respects machine/day grouping, then re-derive both the 0.5 gate cut and the
+   per-family automation allowlist from **cross-dataset** evidence instead of same-distribution
+   evidence. Adding the 01-03 and 02-03-2018 captures would also restore PortScan / Botnet /
+   Infiltration coverage, which tier D could not score at all.
 2. **Open-set / novelty detection** — autoencoder or energy-based scoring so genuinely new attacks
-   are labelled `UNKNOWN` instead of being forced into a known family.
-3. **Drift monitoring + scheduled retraining** — feature-distribution alarms, model registry with
+   are labelled `UNKNOWN` instead of being forced into a known family. Tier D showed the confidence
+   floor cannot do this job: 63 of 10.75 M flows reached the unknown queue.
+3. **Drift monitoring + scheduled retraining** — feature-distribution alarms (the tier-D diagnostic
+   already computes per-feature shift statistics, so it is the natural probe), model registry with
    versioned rollback, champion/challenger evaluation.
 4. **API-level orchestration** — `POST /incidents`, `/incidents/{id}/approve`, `/dismiss` so the
    engine is drivable over HTTP, plus a live dashboard (WebSocket) instead of a static build.
 5. **n8n workflow integration** — webhook client + exported workflow JSON: alert → enrich → notify
    (Slack/email) → approval button → callback → close incident.
-6. **Real-time ingestion** — streaming replay at 1x/10x/100x, then true pcap → features via
-   CICFlowMeter.
+6. **Real-time ingestion** — streaming replay at 1x/10x/100x driven by real flow timestamps (which
+   means preserving `Timestamp` through the builder as a non-feature column), then true pcap →
+   features via CICFlowMeter. On the storage side: hourly-rotated JSONL plus an in-memory index for
+   `latest()`, moving to SQLite (WAL) only if query volume demands it — benign flows never reach the
+   store, so write volume stays at incident volume.
 7. **Real actuator connectors** — firewall/EDR/DNS/IAM adapters behind the same policy catalog,
    with dry-run mode and rollback.
 8. **Alert correlation & incident merging** — group related flows into one campaign/incident
