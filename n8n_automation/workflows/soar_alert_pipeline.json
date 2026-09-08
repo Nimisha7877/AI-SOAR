@@ -1,0 +1,282 @@
+{
+  "name": "AI SOAR - Alert Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-soar",
+        "options": {}
+      },
+      "id": "b4a205f1-72cb-4c84-91ca-c038c27d8c79",
+      "name": "AI SOAR Alert",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        48
+      ],
+      "webhookId": "9a0f187b-2a15-495b-81bd-80a784992112",
+      "notes": "Receives incident events pushed by src/ai_soar/orchestration/n8n.py. Path must match n8n.webhook_path in config/settings.yaml (/webhook/ai-soar). Test it: python -m ai_soar.orchestration.n8n --test --force"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={ ($json.body || $json).needs_human ? 'yes' : 'no' }",
+              "value2": "yes"
+            }
+          ]
+        }
+      },
+      "id": "deef2a0a-7c71-4142-99be-0e99d8de7a0e",
+      "name": "Approval Needed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        48
+      ],
+      "notes": "Routes on needs_human. Compared as a STRING ('yes'/'no') on purpose: IF-node boolean operations changed names across n8n majors, string equality has not. TRUE branch = a destructive action is held for a human; FALSE = the SOAR already auto-responded. Reads ($json.body || $json) because the Webhook node delivers the payload nested under .body (verified on n8n 2.38); the fallback keeps it working if a future version flattens it."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Shapes the AI SOAR webhook payload into a human-readable SOC alert.\n// Every field below is emitted by src/ai_soar/orchestration/n8n.py::build_payload().\nreturn items.map((item) => {\n  const i = item.json.body || item.json;\n  const cb = i.callback || {};\n  const actions = (i.actions || []).map((a) => `${a.action} [${a.status}]`).join(', ') || 'none';\n  return {\n    json: {\n      headline: `${String(i.severity || '').toUpperCase()} ${i.family} - ${i.incident_id}`,\n      summary: `${i.family} detected (confidence ${i.confidence}, gate ${i.gate_probability}). Policy decision: ${i.decision}.`,\n      incident_id: i.incident_id,\n      family: i.family,\n      severity: i.severity,\n      needs_human: i.needs_human,\n      pending_actions: (i.pending_actions || []).join(', ') || 'none',\n      all_actions: actions,\n      reason: i.decision_reason || '',\n      detail_url: cb.detail || '',\n      approve_url: cb.approve || '',\n      dismiss_url: cb.dismiss || '',\n      model_version: i.model_version || '',\n      created_at: i.created_at || '',\n      source: i.source || 'ai-soar',\n    },\n  };\n});"
+      },
+      "id": "740e1866-5ec3-42fa-bed8-e97274e343af",
+      "name": "Format SOC Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -64
+      ],
+      "notes": "Credential-free formatting step. Replace or extend the output, then attach Slack / Gmail / Telegram to the next node. Reads ($json.body || $json) because the Webhook node delivers the payload nested under .body (verified on n8n 2.38); the fallback keeps it working if a future version flattens it."
+    },
+    {
+      "parameters": {},
+      "id": "50730314-c020-4c75-9e76-9b88ec442e2f",
+      "name": "Notify SOC (attach Slack or Gmail)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -64
+      ],
+      "notes": "Drop a Slack or Gmail node here and map {{ $json.headline }} / {{ $json.summary }} / {{ $json.approve_url }}. Left as a no-op so the workflow imports with ZERO credentials."
+    },
+    {
+      "parameters": {},
+      "id": "00e3eca6-7d94-445f-b843-9952535c70aa",
+      "name": "Auto-Response Logged",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        176
+      ],
+      "notes": "Nothing pending: the SOAR already executed the playbook and wrote it to the audit log. Attach a dashboard/ticket node here if you want a record."
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-soar-decision",
+        "options": {}
+      },
+      "id": "332f6831-1b3c-4e2c-a451-04895719471e",
+      "name": "SOAR Decision",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        416
+      ],
+      "webhookId": "54a435bf-7e92-4599-a238-bdac7286ef9b",
+      "notes": "Human decision comes back here (Slack button, dashboard, curl). Body: {\"incident_id\": \"INC-XXXX\", \"decision\": \"approve\" | \"dismiss\", \"approver\": \"analyst@corp\", \"reason\": \"optional\"}"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={ ($json.body || $json).decision }",
+              "operation": "equals",
+              "value2": "approve"
+            }
+          ]
+        }
+      },
+      "id": "fceb9eb0-6820-4480-82b9-26b64afbc92c",
+      "name": "Approve or Dismiss?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        416
+      ],
+      "notes": "Routes on the \"decision\" field of the incoming body. Reads ($json.body || $json) because the Webhook node delivers the payload nested under .body (verified on n8n 2.38); the fallback keeps it working if a future version flattens it."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:8000/incidents/{{ ($json.body || $json).incident_id }}/approve",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ JSON.stringify({ approver: (($json.body || $json).approver) || 'n8n-approver' }) }",
+        "options": {
+          "response": {},
+          "timeout": 10000
+        }
+      },
+      "id": "5443a8ba-181f-468b-9809-e9b2d31e22b8",
+      "name": "POST /incidents/{id}/approve",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        320
+      ],
+      "notes": "Calls the SOAR API. Change the host if the API is not on localhost:8000 (same value as AI_SOAR_API_BASE_URL). Reads ($json.body || $json) because the Webhook node delivers the payload nested under .body (verified on n8n 2.38); the fallback keeps it working if a future version flattens it."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:8000/incidents/{{ ($json.body || $json).incident_id }}/dismiss",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ JSON.stringify({ approver: (($json.body || $json).approver) || 'n8n-approver', reason: (($json.body || $json).reason) || 'dismissed via n8n' }) }",
+        "options": {
+          "response": {},
+          "timeout": 10000
+        }
+      },
+      "id": "f73fdfc8-834c-4a11-9a23-5af352dba85c",
+      "name": "POST /incidents/{id}/dismiss",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        512
+      ],
+      "notes": "Skips the held actions and closes the incident as dismissed. Reads ($json.body || $json) because the Webhook node delivers the payload nested under .body (verified on n8n 2.38); the fallback keeps it working if a future version flattens it."
+    },
+    {
+      "parameters": {},
+      "id": "1653db9a-0021-45fa-b119-b71c54d9629f",
+      "name": "Decision Applied",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        224,
+        416
+      ],
+      "notes": "Both branches land here. The SOAR API response contains the updated incident: status, executed actions, approved_by and the audit notes."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI SOAR Alert": {
+      "main": [
+        [
+          {
+            "node": "Approval Needed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approval Needed?": {
+      "main": [
+        [
+          {
+            "node": "Format SOC Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto-Response Logged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format SOC Alert": {
+      "main": [
+        [
+          {
+            "node": "Notify SOC (attach Slack or Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOAR Decision": {
+      "main": [
+        [
+          {
+            "node": "Approve or Dismiss?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve or Dismiss?": {
+      "main": [
+        [
+          {
+            "node": "POST /incidents/{id}/approve",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST /incidents/{id}/dismiss",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /incidents/{id}/approve": {
+      "main": [
+        [
+          {
+            "node": "Decision Applied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /incidents/{id}/dismiss": {
+      "main": [
+        [
+          {
+            "node": "Decision Applied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c1fd0369-800d-4203-99e0-1aa964398c96",
+  "meta": {
+    "instanceId": "421d57c6e71af4c7bc00ba117e0ef74b8510c464761ad345d595cfe929e8c1bf"
+  },
+  "nodeGroups": [],
+  "id": "NQOy3wVpiDNLnhh1",
+  "tags": []
+}

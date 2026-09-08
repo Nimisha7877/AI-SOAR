@@ -167,6 +167,7 @@ def _cors_origins() -> list[str]:
         "http://127.0.0.1:3000",
     ]
 
+
 def create_app() -> FastAPI:
     settings = get_settings()
     application = FastAPI(

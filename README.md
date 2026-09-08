@@ -9,7 +9,9 @@ RAG-grounded LLM.
 > evaluated on four progressively harder tiers, ending with **10,749,490 flows from
 > CSE-CIC-IDS2018** — an environment the models never saw. Detection, response orchestration and
 > explanation are real and measured; **actuators are simulated** (no live firewall/EDR/DNS is
-> touched) and n8n + live pcap ingestion are future work.
+> touched). **n8n orchestration is implemented and validated** (webhook client +
+> importable workflow, tested end-to-end against n8n 2.38 self-hosted); live pcap
+> ingestion remains future work.
 
 ---
 
@@ -119,7 +121,7 @@ autonomy.
                                     ▼
               ┌──────────────────────────────────────────────┐
               │  SURFACE — FastAPI (/health /predict /batch) │
-              │  single-file HTML dashboard  ·  n8n (roadmap)│
+              │  single-file HTML dashboard  ·  n8n workflow │
               └──────────────────────────────────────────────┘
 ```
 
@@ -152,6 +154,9 @@ autonomy.
 - **Offline-first LLM** — Ollama local model; OpenAI/Anthropic/Gemini also supported via `.env`.
 - **Single-file dashboard** — no server, no CDN, no build step; opens from `file://`.
 - **Strict input contract** — API rejects feature drift with HTTP 422 instead of guessing.
+- **n8n orchestration, fail-open** — incident events push to an n8n webhook (one attempt,
+  3 s timeout, disabled by default); an importable workflow routes human approvals back
+  through the API. n8n being down never blocks detection, response or audit.
 - **Reproducible** — pinned dependencies, fixed seeds, `bootstrap.ps1` / `Dockerfile`.
 
 ---
@@ -167,6 +172,7 @@ autonomy.
 | LLM / RAG | Ollama (qwen2.5-coder:3b), TF-IDF retrieval (scikit-learn), httpx |
 | Reporting | matplotlib 3.9, seaborn 0.13 |
 | Config / secrets | PyYAML + python-dotenv, typed pydantic settings |
+| Orchestration | n8n 2.x — webhook client (`ai_soar.orchestration.n8n`) + importable workflow (`n8n_automation/workflows/`); the notification/approval plane only, never the detection plane |
 | Storage | **no external database** — parquet for data, append-only JSONL for incidents/audit, an in-memory TF-IDF index for RAG, JSON for reports. Benign flows never reach the store, so write volume is *incident* volume, not flow volume. |
 | Packaging | `bootstrap.ps1` (Windows), Docker (python:3.12-slim + libgomp1) |
 | Dataset (train) | CICIDS2017 — 2,830,743 flows, 80 features, 15 labels collapsed to 8 families |
@@ -251,7 +257,8 @@ on 2018 data — that would be fitting the evaluation set. Re-deriving both from
 evidence is future work (merged-training A/B), with its own split.
 
 **Operational numbers (2,000-flow replay):** 324 incidents raised, 362 flows/s, p95 **4.26 ms**/flow;
-7 human approvals exercised through the audit log; 324 TP / 0 FP on that replay — the zero is a
+7 human approvals exercised through the audit log; n8n alert-webhook round-trip measured at
+**60 ms** per execution (n8n 2.38 self-hosted); 324 TP / 0 FP on that replay — the zero is a
 stratified-split artifact, and the realistic figure is tier D's **0.0374 %**.
 
 **Known limitations:**
@@ -308,6 +315,15 @@ stratified-split artifact, and the realistic figure is tier D's **0.0374 %**.
    genuine packet-length scale shift. Two lessons: never judge a dataset from a prefix when rows are
    grouped by machine (that slice was the single worst-case family), and always publish AUC next to
    recall@threshold, because a threshold calibrated in one environment does not transfer.
+9. **The orchestrator fought back (n8n 2.x)** — the imported workflow failed at runtime twice with
+   the same cryptic error (`compareOperationFunctions[...] is not a function`): first because the
+   legacy IF node's boolean operation names changed across n8n majors, then because the Webhook
+   node delivers a JSON payload *nested under `.body`*, so every `$json.field` expression silently
+   read `undefined` and routed to the wrong branch — a **green execution that was quietly wrong**.
+   *Fix:* stopped guessing formats, exported the workflow **from n8n itself** and treated that as
+   ground truth, switched conditions to string equality, and made every expression
+   `($json.body || $json).field` so it survives both payload shapes. Lesson: when a third-party
+   engine rejects your config, let the engine author the config and patch the minimum.
 
 ---
 
@@ -323,9 +339,16 @@ JS, base64 images). Two views:
   deep-links here (`#alerts?sev=critical`); clicking a row expands the full response trail —
   actions executed, approval gates, approver, audit notes, and the cited LLM explanation.
 
-**API:** `GET /health`, `POST /predict`, `POST /predict/batch` (+ Swagger UI at `/docs`).
+**API:** `GET /health`, `POST /predict`, `POST /predict/batch`, `POST /ingest` (score *and*
+respond), `GET /incidents` (+ `/incidents/summary`, `/incidents/{id}`),
+`POST /incidents/{id}/approve`, `POST /incidents/{id}/dismiss` (+ Swagger UI at `/docs`).
 
 **Logs:** `artifacts/incidents/incidents.jsonl`, `explanations.jsonl`.
+
+**Orchestration:** `n8n_automation/workflows/soar_alert_pipeline.json` — import-ready workflow:
+alert webhook → human-approval routing → SOC notification slot, plus a decision webhook that
+calls the approve/dismiss API routes back. Validated end-to-end on n8n 2.38 self-hosted
+(60 ms execution; alert and approval round-trips green).
 
 **Reports (`artifacts/reports/`):** `dataset_report.json`, `profile_report.json`,
 `leakage_audit_report.json`, `temporal_eval_report.json`, `threshold_sweep_report.json`,
@@ -357,6 +380,8 @@ venv\Scripts\python.exe scripts\demo_response.py --rows 2000 --fresh --auto-appr
 venv\Scripts\python.exe scripts\explain_incidents.py --family DDoS --limit 1         # LLM explain
 venv\Scripts\python.exe scripts\build_dashboard.py                                   # dashboard
 start docs\demo\dashboard.html                                                          # open it
+npx n8n                                                                              # orchestration plane
+venv\Scripts\python.exe -m ai_soar.orchestration.n8n --test --force                     # webhook wiring
 ```
 
 Full pipeline from raw CSVs (needs the dataset in `data/raw/`): `build_dataset.py` →
@@ -382,10 +407,12 @@ committed): `verify_cicids2018.py --full` → `build_dataset2018.py` → `diagno
 3. **Drift monitoring + scheduled retraining** — feature-distribution alarms (the tier-D diagnostic
    already computes per-feature shift statistics, so it is the natural probe), model registry with
    versioned rollback, champion/challenger evaluation.
-4. **API-level orchestration** — `POST /incidents`, `/incidents/{id}/approve`, `/dismiss` so the
-   engine is drivable over HTTP, plus a live dashboard (WebSocket) instead of a static build.
-5. **n8n workflow integration** — webhook client + exported workflow JSON: alert → enrich → notify
-   (Slack/email) → approval button → callback → close incident.
+4. **Live operations surface** — WebSocket-driven dashboard instead of a static build, plus
+   alert-correlation views over the incident log. (The HTTP incident/approve/dismiss API
+   shipped together with the n8n work.)
+5. **n8n channel integrations** — wire the workflow's notification slot to Slack/Gmail with a
+   one-click approval button posting to `/webhook/ai-soar-decision`. The client, routing and
+   API callbacks are already in place and validated; only the channel credential is missing.
 6. **Real-time ingestion** — streaming replay at 1x/10x/100x driven by real flow timestamps (which
    means preserving `Timestamp` through the builder as a non-feature column), then true pcap →
    features via CICFlowMeter. On the storage side: hourly-rotated JSONL plus an in-memory index for

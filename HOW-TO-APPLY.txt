@@ -1,0 +1,35 @@
+AI SOAR - Step: API incident endpoints + n8n client
+===================================================
+
+WHERE TO EXTRACT
+  Extract this zip INTO your project root so the paths line up:
+
+      C:\Users\tiwar\Desktop\AI SOAR
+
+  (Right-click the zip -> Extract All -> browse to the folder above -> Extract.)
+  It overwrites exactly two files and creates nothing else:
+
+      src\ai_soar\inference\api.py        (454 lines, replaces the broken paste)
+      src\ai_soar\orchestration\n8n.py    (358 lines, new file)
+
+VERIFY (PowerShell, from the project root)
+  cd "C:\Users\tiwar\Desktop\AI SOAR"
+  $env:PYTHONPATH="src"
+  venv\Scripts\python.exe -m py_compile src\ai_soar\inference\api.py src\ai_soar\orchestration\n8n.py
+  venv\Scripts\python.exe -c "from ai_soar.inference.api import app; ps=[r.path for r in app.routes if hasattr(r,'path')]; print(len(ps)); print(sorted({p for p in ps if 'incident' in p or p=='/ingest'}))"
+
+  Expected: 14
+            ['/incidents', '/incidents/summary', '/incidents/{incident_id}',
+             '/incidents/{incident_id}/approve', '/incidents/{incident_id}/dismiss', '/ingest']
+
+  n8n client self-test (prints the exact JSON payload n8n will receive):
+  venv\Scripts\python.exe -m ai_soar.orchestration.n8n --show
+
+NOTE ON ACTIVATING THE VENV
+  In PowerShell, `venv\Scripts\activate` fails (no extension -> treated as a module).
+  Use either:   .\venv\Scripts\Activate.ps1
+  or skip activation entirely and call  venv\Scripts\python.exe  directly.
+
+NOTHING ELSE CHANGED. No config edits needed: the n8n client reads the existing
+n8n section of config/settings.yaml (enabled=false by default, so clone-and-run
+still works with no n8n installed).
