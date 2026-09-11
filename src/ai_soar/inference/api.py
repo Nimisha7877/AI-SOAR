@@ -296,13 +296,13 @@ def create_app() -> FastAPI:
         append-only and event-sourced, so this folds it down to one record per
         incident id (last write wins) before filtering.
         """
-        response_engine = engine()
         valid = {s.value for s in IncidentStatus}
         if status is not None and status not in valid:
             raise HTTPException(
                 status_code=400,
                 detail=f"unknown status '{status}'; valid: {sorted(valid)}",
             )
+        response_engine = engine()
 
         try:
             states = response_engine.latest()
@@ -340,8 +340,9 @@ def create_app() -> FastAPI:
 
         Declared before ``/incidents/{incident_id}`` on purpose (route order).
         """
+        response_engine = engine()
         try:
-            return engine().summary()
+            return response_engine.summary()
         except Exception as exc:  # noqa: BLE001
             log.exception("incident summary failed")
             raise HTTPException(status_code=500, detail=f"incident store read failed: {exc}") from exc
@@ -349,8 +350,9 @@ def create_app() -> FastAPI:
     @application.get("/incidents/{incident_id}", response_model=Incident, tags=["incidents"])
     def get_incident(incident_id: str) -> Incident:
         """One incident with its full response trail (actions, approvals, notes)."""
+        response_engine = engine()
         try:
-            state = engine().latest().get(incident_id)
+            state = response_engine.latest().get(incident_id)
         except Exception as exc:  # noqa: BLE001
             log.exception("incident fetch failed for %s", incident_id)
             raise HTTPException(status_code=500, detail=f"incident store read failed: {exc}") from exc
@@ -377,7 +379,15 @@ def create_app() -> FastAPI:
         """
         body = request or ApproveRequest()
         response_engine = engine()
-        current = response_engine.latest().get(incident_id)
+        try:
+            current = response_engine.latest().get(incident_id)
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.exception("approve: incident store read failed for %s", incident_id)
+            raise HTTPException(
+                status_code=500, detail=f"incident store read failed: {exc}"
+            ) from exc
         if current is None:
             raise HTTPException(status_code=404, detail=f"unknown incident '{incident_id}'")
         if not current.pending_actions() and current.status != IncidentStatus.PENDING_APPROVAL:
@@ -415,7 +425,16 @@ def create_app() -> FastAPI:
         """
         body = request or DismissRequest()
         response_engine = engine()
-        if response_engine.latest().get(incident_id) is None:
+        try:
+            known = response_engine.latest().get(incident_id) is not None
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.exception("dismiss: incident store read failed for %s", incident_id)
+            raise HTTPException(
+                status_code=500, detail=f"incident store read failed: {exc}"
+            ) from exc
+        if not known:
             raise HTTPException(status_code=404, detail=f"unknown incident '{incident_id}'")
 
         try:
