@@ -91,7 +91,10 @@ class IncidentExplainer:
         out_path: Optional[Path | str] = None,
         use_llm: bool = True,
     ) -> None:
-        self.kb = store or KnowledgeStore()
+        # ``is None``, not ``or``: KnowledgeStore defines __len__, so an empty
+        # injected store is falsy and ``or`` would discard it and re-ingest
+        # the real knowledge_base/ directory.
+        self.kb = KnowledgeStore() if store is None else store
         if not self.kb.chunks:
             self.kb.ingest()
         self.llm = llm or LLMClient()

@@ -316,7 +316,11 @@ def create_app() -> FastAPI:
         if family is not None:
             items = [i for i in items if i.family == family]
         if pending_only:
-            items = [i for i in items if i.pending_actions()]
+            items = [
+                i
+                for i in items
+                if i.status == IncidentStatus.PENDING_APPROVAL or i.pending_actions()
+            ]
         items.sort(key=lambda i: i.created_at, reverse=True)
 
         return IncidentListResponse(

@@ -170,7 +170,15 @@ class ResponseEngine:
             "total_incidents": len(states),
             "by_status": _tally(i.status.value for i in states),
             "by_family": _tally(i.family for i in states),
-            "pending_approval": [i.incident_id for i in states if i.pending_actions()],
+            # Status, not pending_actions(): a decision-level hold
+            # (human_approval / unknown_queue) has NO action records yet, so
+            # selecting on actions would hide exactly the incidents a human
+            # must review.
+            "pending_approval": [
+                i.incident_id
+                for i in states
+                if i.status == IncidentStatus.PENDING_APPROVAL or i.pending_actions()
+            ],
         }
 
     # -- main entry ----------------------------------------------------------

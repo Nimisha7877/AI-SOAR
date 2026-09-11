@@ -214,3 +214,24 @@ def test_nonfinite_fixture_really_is_broken(
 ) -> None:
     assert set(nonfinite_features) == set(feature_columns)
     assert not all(math.isfinite(v) for v in nonfinite_features.values())
+
+
+def pytest_load_initial_conftests(early_config, parser, args):
+    """Silence third-party import-time deprecation noise (matplotlib/pyparsing).
+
+    These fire while test modules are being imported - before any per-test
+    filter applies - and they come from vendored code we do not control. The
+    hook runs before argument parsing, so appending ``-W`` here is equivalent
+    to putting it on the command line, without touching pyproject.toml.
+
+    FutureWarnings stay ERRORS on purpose: those come from pandas/numpy and
+    mean our own code uses something that breaks on the next major upgrade.
+    """
+    args.extend(
+        [
+            "-W", "ignore:'oneOf' deprecated",
+            "-W", "ignore:'parseString' deprecated",
+            "-W", "ignore:'resetCache' deprecated",
+            "-W", "error::FutureWarning",
+        ]
+    )
