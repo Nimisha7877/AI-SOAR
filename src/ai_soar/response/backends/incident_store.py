@@ -1,13 +1,20 @@
-"""Incident persistence backend: an append-only JSONL store.
+﻿"""Incident persistence backend: an append-only JSONL store.
 
 Why JSONL and not SQLite: an incident log is append-only, reviewed by humans,
 and grep-able; one JSON object per line survives partial writes and needs no
 migration tooling. If query needs grow later, swap this class for a DB-backed
-one - the response engine only calls ``append`` / ``read_all`` / ``pending_approval``.
+one - the response engine only calls ``append`` / ``read_all`` / ``latest`` /
+``pending_approval``.
 
 Thread safety: the API may score flows from several worker threads, so appends
 take a lock. A torn line can never be written, and a corrupt line can never
 kill ``read_all`` (it is skipped with a warning).
+
+Reading: the log is EVENT-SOURCED. ``approve``/``dismiss`` append a new line
+rather than editing the old one, so "what is true now" is always the LAST line
+for an incident id. Anything that answers a *current state* question
+(``pending_approval``) must go through :meth:`latest`; reading raw lines would
+report an incident as pending forever.
 """
 
 from __future__ import annotations
@@ -70,16 +77,38 @@ class IncidentStore:
                 log.warning("skipping corrupt incident line %d: %s", lineno, exc)
         return out[-limit:] if limit else out
 
+    def latest(self) -> dict[str, Incident]:
+        """Current state per incident id: the LAST line for an id is the truth.
+
+        Earlier lines are history and are kept on purpose (that is what makes
+        the log an audit trail), but they must never be read as current state.
+        """
+        state: dict[str, Incident] = {}
+        for incident in self.read_all():
+            state[incident.incident_id] = incident
+        return state
+
     def pending_approval(self) -> list[Incident]:
-        """The human's work queue: incidents waiting on an approver."""
-        return [i for i in self.read_all() if i.status == IncidentStatus.PENDING_APPROVAL]
+        """The human's work queue: incidents CURRENTLY waiting on an approver."""
+        return [i for i in self.latest().values() if i.status == IncidentStatus.PENDING_APPROVAL]
 
     def counts(self) -> dict[str, int]:
-        """Incidents per status - a one-glance SOC summary."""
+        """Incidents per status (latest state per id) - a one-glance SOC summary."""
         tally: dict[str, int] = {}
-        for incident in self.read_all():
+        for incident in self.latest().values():
             tally[incident.status.value] = tally.get(incident.status.value, 0) + 1
         return tally
+
+    # -- object protocol ----------------------------------------------------
+    def __bool__(self) -> bool:
+        """ALWAYS truthy.
+
+        ``__len__`` below makes an empty log falsy, and ``store or
+        IncidentStore()`` in a caller would then silently throw away the store
+        it was given and fall back to the configured (production) path. Pinning
+        truthiness removes that trap for every current and future caller.
+        """
+        return True
 
     def __len__(self) -> int:  # pragma: no cover - convenience
         return len(self.read_all())
